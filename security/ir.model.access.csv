@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_factura_en_usd_factura_en_usd,factura_en_usd.factura_en_usd,model_factura_en_usd_factura_en_usd,base.group_user,1,1,1,1
