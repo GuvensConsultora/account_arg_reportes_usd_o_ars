@@ -2,13 +2,13 @@
 {
     'name': "factura_en_usd",
 
-    'summary': "Short (1 phrase/line) summary of the module's purpose",
+    'summary': "Generar reporte en dolares sin afectar factura en pesos",
 
     'description': """
-Long description of module's purpose
+Generación de un reporte pdf teniendo en cuanto dos campos agregados tc y fact en usd 
     """,
 
-    'author': "My Company",
+    'author': "Güvens Consultora",
     'website': "https://www.yourcompany.com",
 
     # Categories can be used to filter modules in modules listing
@@ -18,13 +18,13 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base','account'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
-        'views/templates.xml',
+        'views/account_move_view.xml',
+        'views/templates_factura_usd.xml', 
     ],
     # only loaded in demonstration mode
     'demo': [

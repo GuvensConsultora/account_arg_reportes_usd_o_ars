@@ -1,0 +1,21 @@
+<odoo>
+    <template id="report_invoice_document_inherit_usd" inherit_id="l10n_ar.report_invoice_document">
+
+        <!-- Definir tipo de cambio -->
+	<xpath expr="//t[@t-call='l10n_ar.document_tax_totals']" position="before">
+            <t t-set="tc" t-value="o.x_tipo_cambio or 1.0"/>
+        </xpath>
+
+        <!-- Precio unitario en USD si se activa el tilde -->
+        <xpath expr="//span[@t-out=\"l10n_ar_values['price_unit']\"]" position="replace">
+            <t t-if="o.x_factura_dolares and tc">
+                <span t-esc="(l10n_ar_values['price_unit'] / tc)|round(2)"/> USD
+            </t>
+            <t t-else="">
+                <span t-out="l10n_ar_values['price_unit']"
+                      <!--t-options="{'widget': 'float', 'display_currency': o.currency_id, 'decimal_precision': 'Product Price'}"-->/>
+            </t>
+        </xpath>
+
+    </template>
+</odoo>
