@@ -1,0 +1,46 @@
+<odoo>
+  <template id="grupos_de_impuesto_en_facturas" inherit_id="account.tax_groups_totals">
+    <xpath expr="." position="replace">
+      <t t-foreach="tax_totals['groups_by_subtotal'][subtotal_to_show]" t-as="amount_by_group"> <!--Recorro el diccionario cada reg se llama amount_by_group-->
+        <t t-set="display_tax_base" t-value="tax_totals['display_tax_base']"/> <!--Seteo la variable display_tax_base -->
+        <tr>
+          <t t-if="tax_totals['display_tax_base']"> <!--Si está configurado que se muestre el importe base -->
+            <td>
+              <span t-esc="amount_by_group['tax_group_name']"/> <!--Nombre del grupo-->
+              <span t-if="not amount_by_group['hide_base_amount']" class="text-nowrap"> <!--Si el importe no está seteado para ser mostrado-->
+		<!--Determinamos si está activado el tilde factura es usd y tiene tipo de cambio -->
+		<t t-if="o.x_factura_dolares and o.x_tipo_cambio">
+		  <span t-esc="round(amount_by_group['tax_group_base_amount'] / o.x_tipo_cambio, 2)"/>
+		</t>
+		<t t-else="">
+		  <t t-esc="amount_by_group['formatted_tax_group_base_amount']"/>
+		</t>
+	      </span>
+            </td>
+            <td class="text-end o_price_total">
+	      <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
+		<span t-esc="round(amount_by_group['tax_group_amount'] / o.x_tipo_cambio, 2)"/>
+	      </t>
+	      <t t-else="">
+		<span class="text-nowrap" t-out="amount_by_group['formatted_tax_group_amount']">1.05</span>
+	      </t>
+	    </td>
+          </t>
+          <t t-else=""> <!--No se muestra impuesto base -->
+            <td>
+	      <span t-out="amount_by_group['tax_group_name']">Tax 15%</span>
+            </td>
+            <td class="text-end o_price_total">
+	      <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
+		<span t-esc="round(amount_by_group['tax_group_amount'] / o.x_tipo_cambio, 2)"/>
+	      </t>
+	      <t t-else="">
+		<span class="text-nowrap" t-out="amount_by_group['formatted_tax_group_amount']">1.05</span>
+	      </t>
+	    </td>
+          </t>
+        </tr>
+      </t>
+    </xpath>
+  </template>
+</odoo>
