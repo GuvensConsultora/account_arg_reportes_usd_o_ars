@@ -1,9 +1,0 @@
-<odoo>
-  <data>
-    <template id="sale_document_inherit_usd" inherit_id="sale.report_saleorder_document">
-      <xpath expr="//div[@id='informations']" position="inside">
-	<h3>Hola Mundo</h3>
-      </xpath>
-    </template>
-  </data>
-</odoo>

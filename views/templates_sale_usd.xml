@@ -45,7 +45,7 @@
     <!-- Exponemos los totales con impuestos. -->
     <xpath expr="//tr[@class='border-black o_total']/td[@class='text-end']" position="replace">
       <t t-if="doc.x_sale_dolares and doc.x_tipo_cambio">
-	<span t-out="round(float(total['amount_total']) / doc.x_tipo_cambio, 2)"/> USD
+	<span t-out="round(tax_totals.get('amount_total') / doc.x_tipo_cambio, 2)"/> USD
       </t>
       <t t-else="">
 	<span t-out="tax_totals.get('formatted_amount_total')">31.05</span>
