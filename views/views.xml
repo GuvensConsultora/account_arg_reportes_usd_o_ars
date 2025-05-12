@@ -1,60 +1,79 @@
 <odoo>
   <data>
-    <!-- explicit list view definition -->
-<!--
-    <record model="ir.ui.view" id="factura_en_usd.list">
-      <field name="name">factura_en_usd list</field>
-      <field name="model">factura_en_usd.factura_en_usd</field>
+    <record id="view_form_sale_inherit_usd" model="ir.ui.view">
+      <field name="name">sale_inherit_usd</field>
+      <field name="model">sale.order</field>
+      <field name="inherit_id" ref="sale.view_order_form"/>
       <field name="arch" type="xml">
-        <tree>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
-        </tree>
+
+	<!-- 1. Insertamos el campo x_sale_dolares y x_tipo_cambio -->
+	<xpath expr="//group[@name='order_details']" position="inside">
+	  <field name="x_sale_dolares"/>
+	  <field name="x_tipo_cambio" invisible="x_sale_dolares !=True"/>
+	</xpath>
+
+	<!-- 2. Extendemos el contexto del campo order_line -->
+	<xpath expr="//field[@name='order_line']" position="attributes">
+	  <attribute name="context">
+            {
+	    'partner_id': partner_id,
+	    'pricelist': pricelist_id,
+	    'company_id': company_id,
+	    'mostrar_usd': x_sale_dolares
+	    }
+	  </attribute>
+	</xpath>
+
+	<!-- 3. Agregamos el campo x_sale_pcio_usd antes del precio unitario -->
+	<xpath expr="//tree/field[@name='price_unit']" position="before">
+	  <!-- <field name="x_sale_pcio_usd" column_invisible="not mostrar_usd"/> - -->
+	  <field name="x_sale_pcio_usd" invisible="context.get('mostrar_usd') != True"/>
+	</xpath>
+
       </field>
+
     </record>
--->
 
     <!-- actions opening views on models -->
-<!--
-    <record model="ir.actions.act_window" id="factura_en_usd.action_window">
-      <field name="name">factura_en_usd window</field>
-      <field name="res_model">factura_en_usd.factura_en_usd</field>
-      <field name="view_mode">tree,form</field>
-    </record>
--->
+    <!--
+	 <record model="ir.actions.act_window" id="factura_en_usd.action_window">
+	 <field name="name">factura_en_usd window</field>
+	 <field name="res_model">factura_en_usd.factura_en_usd</field>
+	 <field name="view_mode">tree,form</field>
+	 </record>
+    -->
 
     <!-- server action to the one above -->
-<!--
-    <record model="ir.actions.server" id="factura_en_usd.action_server">
-      <field name="name">factura_en_usd server</field>
-      <field name="model_id" ref="model_factura_en_usd_factura_en_usd"/>
-      <field name="state">code</field>
-      <field name="code">
-        action = {
-          "type": "ir.actions.act_window",
-          "view_mode": "tree,form",
-          "res_model": model._name,
-        }
-      </field>
-    </record>
--->
+    <!--
+	 <record model="ir.actions.server" id="factura_en_usd.action_server">
+	 <field name="name">factura_en_usd server</field>
+	 <field name="model_id" ref="model_factura_en_usd_factura_en_usd"/>
+	 <field name="state">code</field>
+	 <field name="code">
+         action = {
+         "type": "ir.actions.act_window",
+         "view_mode": "tree,form",
+         "res_model": model._name,
+         }
+	 </field>
+	 </record>
+    -->
 
     <!-- Top menu item -->
-<!--
-    <menuitem name="factura_en_usd" id="factura_en_usd.menu_root"/>
--->
+    <!--
+	 <menuitem name="factura_en_usd" id="factura_en_usd.menu_root"/>
+    -->
     <!-- menu categories -->
-<!--
-    <menuitem name="Menu 1" id="factura_en_usd.menu_1" parent="factura_en_usd.menu_root"/>
-    <menuitem name="Menu 2" id="factura_en_usd.menu_2" parent="factura_en_usd.menu_root"/>
--->
+    <!--
+	 <menuitem name="Menu 1" id="factura_en_usd.menu_1" parent="factura_en_usd.menu_root"/>
+	 <menuitem name="Menu 2" id="factura_en_usd.menu_2" parent="factura_en_usd.menu_root"/>
+    -->
     <!-- actions -->
-<!--
-    <menuitem name="List" id="factura_en_usd.menu_1_list" parent="factura_en_usd.menu_1"
-              action="factura_en_usd.action_window"/>
-    <menuitem name="Server to list" id="factura_en_usd" parent="factura_en_usd.menu_2"
-              action="factura_en_usd.action_server"/>
--->
+    <!--
+	 <menuitem name="List" id="factura_en_usd.menu_1_list" parent="factura_en_usd.menu_1"
+         action="factura_en_usd.action_window"/>
+	 <menuitem name="Server to list" id="factura_en_usd" parent="factura_en_usd.menu_2"
+         action="factura_en_usd.action_server"/>
+    -->
   </data>
 </odoo>

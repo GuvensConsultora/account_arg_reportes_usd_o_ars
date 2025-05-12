@@ -18,14 +18,16 @@ Generación de un reporte pdf teniendo en cuanto dos campos agregados tc y fact 
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account'],
+    'depends': ['base','account','sale'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/grupos_impuestos.xml',
         'views/account_move_view.xml',
-        'views/templates_factura_usd.xml', 
+        'views/templates_factura_usd.xml',
+        'views/templates_sale_usd.xml',
+        'views/views.xml'
     ],
     # only loaded in demonstration mode
     'demo': [

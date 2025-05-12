@@ -1,0 +1,55 @@
+<odoo>
+  <template id="report_sale_inherit_usd" inherit_id="sale.report_saleorder_document">
+    <xpath expr="//span[@t-field='line.price_unit']" position="replace">
+      <t t-if="doc.x_sale_dolares and doc.x_tipo_cambio">
+	<span t-esc="round(line.price_unit / doc.x_tipo_cambio)"/>
+      </t>
+      <t t-else="">
+	<span t-out="line.price_unit"/>
+      </t>
+    </xpath>
+    <xpath expr="//span[@t-field='line.price_subtotal']" position="replace">
+      <t t-if="doc.x_sale_dolares and doc.x_tipo_cambio">
+	<span t-esc="round(line.price_subtotal / doc.x_tipo_cambio)"/>
+      </t>
+      <t t-else="">
+	<span t-out="line.price_subtotal"/>
+      </t>
+    </xpath>
+    <xpath expr="//span[@t-out='current_subtotal']" position="replace">
+      <t t-if="doc.x_sale_dolares and doc.x_tipo_cambio">
+	<span t-esc="round(current_subtotal / doc.x_tipo_cambio)"/>
+      </t>
+      <t t-else="">
+	<span t-out="current_subtotal"/>
+      </t>
+    </xpath>
+    <xpath expr="//t[@t-call='sale.document_tax_totals']" position="replace">
+      <t t-call="sale.document_tax_totals">
+	<t t-set="doc" t-value="doc"/>
+      </t>
+    </xpath>
+
+  </template>
+
+  <template id="sale_document_tax_totals_usd" inherit_id="sale.document_tax_totals">
+    <!-- Exponemos los sub totales con impuestos -->
+    <xpath expr="//tr[@class='border-black o_subtotal']/td[@class='text-end']" position="replace">
+      <t t-if="doc.x_sale_dolares and doc.x_tipo_cambio">
+        <span t-att-class="oe_subtotal_footer_separator" t-out="round(float(subtotal['amount']) / doc.x_tipo_cambio, 2)"/> USD
+      </t>
+      <t t-else="">
+        <span t-att-class="oe_subtotal_footer_separator" t-out="subtotal['formatted_amount']"/>
+      </t>
+    </xpath>
+    <!-- Exponemos los totales con impuestos. -->
+    <xpath expr="//tr[@class='border-black o_total']/td[@class='text-end']" position="replace">
+      <t t-if="doc.x_sale_dolares and doc.x_tipo_cambio">
+	<span t-out="round(float(total['amount_total']) / doc.x_tipo_cambio, 2)"/> USD
+      </t>
+      <t t-else="">
+	<span t-out="tax_totals.get('formatted_amount_total')">31.05</span>
+      </t>
+    </xpath>
+  </template>
+</odoo>
