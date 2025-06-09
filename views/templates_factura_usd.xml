@@ -1,6 +1,6 @@
 <odoo>
   <template id="report_invoice_document_inherit_usd" inherit_id="l10n_ar.report_invoice_document">
-    <!-- Precio unitarOBio en USD si se activa el tilde -->
+    <!-- Precio unitario en USD si se activa el tilde -->
     <xpath expr="//span[@t-out=&quot;l10n_ar_values['price_unit']&quot;]" position="replace">
       <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
 	<span t-esc="round(l10n_ar_values['price_unit'] / o.x_tipo_cambio, 2)"/>
@@ -17,34 +17,39 @@
         <span t-out="l10n_ar_values['price_subtotal']"/>
       </t>
     </xpath>
-    <div>
-      <t t-if="document_letter == 'B'">
-	<!--<strong>Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</strong>
-	    <t t-foreach="o.tax_totals['groups_by_subtotal']['Subtotal']" t-as="subtotal_key">
-	      <span t-esc="subtotal_key['tax_group_name']"/>
-	      <span t-esc="subtotal_key['tax_group_amount']"/>
-	    </t>-->
-	    <table class="border border-2 border-secondary rounded shadow-sm overflow-hidden">
-	      <tbody>
+    <xpath expr="//div[@id='payment_term']" position="before">
+      <div>
+        <t t-if="document_letter == 'B'">
+          <table class="border border-2 border-secondary rounded shadow-sm overflow-hidden">
+            <tbody>
+              <tr>
+                <td><strong>Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</strong></td>
 		<tr>
-		  <td><strong>Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</strong></td>
-		  <td>Impuestos</td>
-		  <td>
-		    <table class="table table-sm table-striped table-borderless align-middle">
-		      <t t-foreach="o.tax_totals['groups_by_subtotal']['Subtotal']" t-as="subtotal_key">
-			<tr><td>
-			    <span t-esc="subtotal_key['tax_group_name']"/>:
-			  </td><td class="text-end" >
-			    <span t-esc="subtotal_key['tax_group_amount']"/>
-			</td></tr>
-		      </t>
-		    </table>
-		  </td>
+                <td>
+                  <table class="table table-sm table-striped table-borderless align-middle">
+                    <t t-foreach="o.tax_totals['groups_by_subtotal'].items()" t-as="subtotal_item">
+                      <t t-set="impuestos" t-value="subtotal_item[1]"/>
+                      <t t-foreach="impuestos" t-as="tax">
+                        <tr>
+                          <td>
+                            <span t-esc="tax['tax_group_name']"/>:
+                          </td>
+                          <td class="text-end">
+                            <span t-esc="tax['tax_group_amount']"/>
+                          </td>
+                        </tr>
+                      </t>
+                    </t>
+                  </table>
+                </td>
 		</tr>
-	      </tbody>
-	    </table>
-      </t>
-    </div>
+              </tr>
+            </tbody>
+          </table>
+        </t>
+      </div>
+    </xpath>
+
   </template>
   <template inherit_id="account.document_tax_totals" id="document_tax_totals_usd" >
     <!-- Cambiar nombre del template si hace falta reusar -->
