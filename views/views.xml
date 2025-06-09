@@ -4,6 +4,7 @@
       <field name="name">sale_inherit_usd</field>
       <field name="model">sale.order</field>
       <field name="inherit_id" ref="sale.view_order_form"/>
+      <field name="x_studio_ok_para_la_entrega" invisible="1"/>
       <field name="arch" type="xml">
 
 	<!-- 1. Insertamos el campo x_sale_dolares y x_tipo_cambio -->
