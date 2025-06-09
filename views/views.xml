@@ -4,13 +4,13 @@
       <field name="name">sale_inherit_usd</field>
       <field name="model">sale.order</field>
       <field name="inherit_id" ref="sale.view_order_form"/>
-      <field name="x_studio_ok_para_la_entrega" invisible="1"/>
       <field name="arch" type="xml">
 
 	<!-- 1. Insertamos el campo x_sale_dolares y x_tipo_cambio -->
 	<xpath expr="//group[@name='order_details']" position="inside">
 	  <field name="x_sale_dolares"/>
 	  <field name="x_tipo_cambio" invisible="x_sale_dolares !=True"/>
+	  <field name="x_studio_ok_para_la_entrega" invisible="1"/>
 	</xpath>
 
 	<!-- 2. Extendemos el contexto del campo order_line -->
