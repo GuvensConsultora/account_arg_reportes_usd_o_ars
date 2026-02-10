@@ -25,7 +25,8 @@
 	</xpath>
 
 	<!-- 3. Agregamos el campo x_sale_pcio_usd antes del precio unitario -->
-	<xpath expr="//tree/field[@name='price_unit']" position="before">
+	<!-- Odoo 19: <tree> renombrado a <list> -->
+	<xpath expr="//list/field[@name='price_unit']" position="before">
 	  <!-- <field name="x_sale_pcio_usd" column_invisible="not mostrar_usd"/> - -->
 	  <field name="x_sale_pcio_usd" invisible="context.get('mostrar_usd') != True"/>
 	</xpath>
