@@ -23,10 +23,12 @@ Generación de un reporte pdf teniendo en cuanto dos campos agregados tc y fact 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/grupos_impuestos.xml',
+        # Odoo 19: account.tax_groups_totals eliminado, revisar templates
+        # 'views/grupos_impuestos.xml',
         'views/account_move_view.xml',
-        'views/templates_factura_usd.xml',
-        'views/templates_sale_usd.xml',
+        # Odoo 19: verificar si account.document_tax_totals y l10n_ar.report_invoice_document siguen existiendo
+        # 'views/templates_factura_usd.xml',
+        # 'views/templates_sale_usd.xml',
         'views/views.xml'
     ],
     # only loaded in demonstration mode
