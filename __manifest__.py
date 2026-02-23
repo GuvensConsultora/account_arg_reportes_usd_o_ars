@@ -18,7 +18,9 @@ Generación de un reporte pdf teniendo en cuanto dos campos agregados tc y fact 
     'version': '1.0.0',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','sale'],
+    # Por qué: ceralfa_studio_migration debe cargar primero para limpiar
+    #          vistas heredadas rotas (ocapi_bindings) antes de validar las nuestras.
+    'depends': ['base', 'account', 'sale', 'ceralfa_studio_migration'],
 
     # always loaded
     'data': [
