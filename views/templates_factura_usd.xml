@@ -1,61 +1,85 @@
 <odoo>
-  <template id="report_invoice_document_inherit_usd" inherit_id="l10n_ar.report_invoice_document">
-    <!-- Precio unitarOBio en USD si se activa el tilde -->
+  <!--
+    Template: Conversión USD en factura argentina
+    Por qué: Los importes se precalculan en Python (x_usd_display_data)
+    para evitar errores de redondeo al dividir cada línea por separado.
+    Patrón: Single Source of Truth — el total se convierte UNA sola vez
+    y la diferencia se ajusta en la última línea.
+  -->
+  <template id="report_invoice_document_inherit_usd"
+            inherit_id="l10n_ar.report_invoice_document">
+
+    <!-- Cargar datos USD precalculados al inicio del documento -->
+    <xpath expr="//div[@id='informations']" position="before">
+      <t t-if="o.x_factura_dolares and o.x_usd_display_data">
+        <!-- Tip: dict {line_id: line_data} para lookup O(1) en vez de iterar -->
+        <t t-set="usd_lines_map"
+           t-value="{str(l['line_id']): l for l in o.x_usd_display_data.get('lines', [])}"/>
+      </t>
+    </xpath>
+
+    <!-- Precio unitario en USD -->
     <xpath expr="//span[@t-out=&quot;l10n_ar_values['price_unit']&quot;]" position="replace">
-      <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
-	<span t-esc="round(l10n_ar_values['price_unit'] / o.x_tipo_cambio, 2)"/>
-      </t>  
+      <t t-if="o.x_factura_dolares and o.x_usd_display_data">
+        <t t-set="line_usd" t-value="usd_lines_map.get(str(line.id), {})"/>
+        <span t-esc="'%.2f' % line_usd.get('price_unit_usd', 0)"/>
+      </t>
       <t t-else="">
         <span t-out="l10n_ar_values['price_unit']"/>
       </t>
     </xpath>
+
+    <!-- Subtotal de línea en USD -->
     <xpath expr="//span[@t-out=&quot;l10n_ar_values['price_subtotal']&quot;]" position="replace">
-      <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
-        <span t-esc="round(l10n_ar_values['price_subtotal'] / o.x_tipo_cambio, 2)"/>
+      <t t-if="o.x_factura_dolares and o.x_usd_display_data">
+        <t t-set="line_usd" t-value="usd_lines_map.get(str(line.id), {})"/>
+        <span t-esc="'%.2f' % line_usd.get('price_subtotal_usd', 0)"/>
       </t>
       <t t-else="">
         <span t-out="l10n_ar_values['price_subtotal']"/>
       </t>
     </xpath>
+
+    <!-- Cuadro Transparencia Fiscal (Factura B) — sin cambios en lógica -->
     <div>
       <t t-if="document_letter == 'B'">
-	<!--<strong>Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</strong>
-	    <t t-foreach="o.tax_totals['groups_by_subtotal']['Subtotal']" t-as="subtotal_key">
-	      <span t-esc="subtotal_key['tax_group_name']"/>
-	      <span t-esc="subtotal_key['tax_group_amount']"/>
-	    </t>-->
-	    <table class="border border-2 border-secondary rounded shadow-sm overflow-hidden">
-	      <tbody>
-		<tr>
-		  <td><strong>Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</strong></td>
-		  <td>Impuestos</td>
-		  <td>
-		    <table class="table table-sm table-striped table-borderless align-middle">
-		      <t t-foreach="o.tax_totals['groups_by_subtotal']['Subtotal']" t-as="subtotal_key">
-			<tr><td>
-			    <span t-esc="subtotal_key['tax_group_name']"/>:
-			  </td><td class="text-end" >
-			    <span t-esc="subtotal_key['tax_group_amount']"/>
-			</td></tr>
-		      </t>
-		    </table>
-		  </td>
-		</tr>
-	      </tbody>
-	    </table>
+        <table class="border border-2 border-secondary rounded shadow-sm overflow-hidden">
+          <tbody>
+            <tr>
+              <td><strong>Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</strong></td>
+              <td>Impuestos</td>
+              <td>
+                <table class="table table-sm table-striped table-borderless align-middle">
+                  <t t-foreach="o.tax_totals['groups_by_subtotal']['Subtotal']" t-as="subtotal_key">
+                    <tr>
+                      <td><span t-esc="subtotal_key['tax_group_name']"/>:</td>
+                      <td class="text-end">
+                        <span t-esc="subtotal_key['tax_group_amount']"/>
+                      </td>
+                    </tr>
+                  </t>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </t>
     </div>
   </template>
-  <template inherit_id="account.document_tax_totals" id="document_tax_totals_usd" >
-    <!-- Cambiar nombre del template si hace falta reusar -->
-    <xpath expr="." position="attributes">
-      <attribute name="t-name">l10n_ar.document_tax_totals</attribute>
-    </xpath>
-    <!-- Mostrar subtotales en USD -->
+
+  <!--
+    Template: Totales de impuestos en USD
+    Por qué: subtotal y total se leen del dict precalculado
+    para que la suma cuadre exacta con el total.
+  -->
+  <template inherit_id="account.document_tax_totals"
+            id="document_tax_totals_usd">
+
+    <!-- Subtotal en USD -->
     <xpath expr="//tr[@class='border-black o_subtotal']/td[@class='text-end']" position="replace">
       <td class="text-end">
-        <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
-          <span t-esc="round(subtotal['amount'] / o.x_tipo_cambio, 2)"/>
+        <t t-if="o.x_factura_dolares and o.x_usd_display_data">
+          <span t-esc="'%.2f' % o.x_usd_display_data.get('subtotal_usd', 0)"/>
         </t>
         <t t-else="">
           <span t-out="subtotal['formatted_amount']"/>
@@ -63,20 +87,21 @@
       </td>
     </xpath>
 
+    <!-- Mantener t-call a tax_groups_totals -->
     <xpath expr="//t[@t-call='account.tax_groups_totals']" position="replace">
       <t t-call="account.tax_groups_totals"/>
     </xpath>
 
-    <!-- Mostrar total con redondeo en USD -->
+    <!-- Total en USD -->
     <xpath expr="//tr[@class='border-black o_total']/td[@class='text-end']" position="replace">
       <td class="text-end">
-        <t t-if="o.x_factura_dolares and o.x_tipo_cambio">
-          <span t-esc="round(tax_totals['amount_total'] / o.x_tipo_cambio, 2)"/>
+        <t t-if="o.x_factura_dolares and o.x_usd_display_data">
+          <span t-esc="'%.2f' % o.x_usd_display_data.get('total_usd', 0)"/>
         </t>
         <t t-else="">
           <span t-out="tax_totals.get('formatted_amount_total')"/>
         </t>
       </td>
     </xpath>
-  </template>  
+  </template>
 </odoo>
