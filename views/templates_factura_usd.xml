@@ -1,6 +1,6 @@
 <odoo>
   <!--
-    Template: Conversión USD en factura argentina
+    Template: Conversión USD en líneas de factura argentina
     Por qué: Los importes se precalculan en Python (x_usd_display_data)
     para evitar errores de redondeo al dividir cada línea por separado.
     Patrón: Single Source of Truth — el total se convierte UNA sola vez
@@ -40,7 +40,8 @@
       </t>
     </xpath>
 
-    <!-- Cuadro Transparencia Fiscal (Factura B) — sin cambios en lógica -->
+    <!-- Cuadro Transparencia Fiscal (Factura B) -->
+    <!-- Odoo 19: tax_totals usa subtotals[].tax_groups[] -->
     <div>
       <t t-if="document_letter == 'B'">
         <table class="border border-2 border-secondary rounded shadow-sm overflow-hidden">
@@ -50,13 +51,16 @@
               <td>Impuestos</td>
               <td>
                 <table class="table table-sm table-striped table-borderless align-middle">
-                  <t t-foreach="o.tax_totals['groups_by_subtotal']['Subtotal']" t-as="subtotal_key">
-                    <tr>
-                      <td><span t-esc="subtotal_key['tax_group_name']"/>:</td>
-                      <td class="text-end">
-                        <span t-esc="subtotal_key['tax_group_amount']"/>
-                      </td>
-                    </tr>
+                  <t t-foreach="o.tax_totals.get('subtotals', [])" t-as="st">
+                    <t t-foreach="st.get('tax_groups', [])" t-as="tg">
+                      <tr>
+                        <td><span t-esc="tg['group_name']"/>:</td>
+                        <td class="text-end">
+                          <span t-out="tg['tax_amount_currency']"
+                                t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                        </td>
+                      </tr>
+                    </t>
                   </t>
                 </table>
               </td>
@@ -65,43 +69,5 @@
         </table>
       </t>
     </div>
-  </template>
-
-  <!--
-    Template: Totales de impuestos en USD
-    Por qué: subtotal y total se leen del dict precalculado
-    para que la suma cuadre exacta con el total.
-  -->
-  <template inherit_id="account.document_tax_totals"
-            id="document_tax_totals_usd">
-
-    <!-- Subtotal en USD -->
-    <xpath expr="//tr[@class='border-black o_subtotal']/td[@class='text-end']" position="replace">
-      <td class="text-end">
-        <t t-if="o.x_factura_dolares and o.x_usd_display_data">
-          <span t-esc="'%.2f' % o.x_usd_display_data.get('subtotal_usd', 0)"/>
-        </t>
-        <t t-else="">
-          <span t-out="subtotal['formatted_amount']"/>
-        </t>
-      </td>
-    </xpath>
-
-    <!-- Mantener t-call a tax_groups_totals -->
-    <xpath expr="//t[@t-call='account.tax_groups_totals']" position="replace">
-      <t t-call="account.tax_groups_totals"/>
-    </xpath>
-
-    <!-- Total en USD -->
-    <xpath expr="//tr[@class='border-black o_total']/td[@class='text-end']" position="replace">
-      <td class="text-end">
-        <t t-if="o.x_factura_dolares and o.x_usd_display_data">
-          <span t-esc="'%.2f' % o.x_usd_display_data.get('total_usd', 0)"/>
-        </t>
-        <t t-else="">
-          <span t-out="tax_totals.get('formatted_amount_total')"/>
-        </t>
-      </td>
-    </xpath>
   </template>
 </odoo>

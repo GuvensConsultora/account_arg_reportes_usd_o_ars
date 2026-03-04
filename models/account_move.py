@@ -70,27 +70,26 @@ class AccountMove(models.Model):
                 )
 
             # --- Impuestos ---
+            # Odoo 19: tax_totals usa estructura subtotals[].tax_groups[]
+            # en vez de groups_by_subtotal (v17)
             taxes_usd = []
             sum_taxes = 0.0
             tax_totals = move.tax_totals or {}
-            groups = tax_totals.get(
-                'groups_by_subtotal', {}
-            ).get('Subtotal', [])
 
-            for group in groups:
-                tax_amount_usd = round(
-                    group['tax_group_amount'] / tc, 2
-                )
-                tax_base_usd = round(
-                    group['tax_group_base_amount'] / tc, 2
-                )
-                taxes_usd.append({
-                    'name': group['tax_group_name'],
-                    'amount_usd': tax_amount_usd,
-                    'base_usd': tax_base_usd,
-                    'hide_base_amount': group.get('hide_base_amount', False),
-                })
-                sum_taxes += tax_amount_usd
+            for subtotal in tax_totals.get('subtotals', []):
+                for tg in subtotal.get('tax_groups', []):
+                    tax_amount_usd = round(
+                        tg['tax_amount_currency'] / tc, 2
+                    )
+                    # display_base puede ser False si same_tax_base
+                    base_val = tg.get('display_base_amount_currency')
+                    tax_base_usd = round(base_val / tc, 2) if base_val else False
+                    taxes_usd.append({
+                        'name': tg['group_name'],
+                        'amount_usd': tax_amount_usd,
+                        'base_usd': tax_base_usd,
+                    })
+                    sum_taxes += tax_amount_usd
 
             # Verificar subtotal + impuestos == total
             # Si hay diff por redondeo, ajustar en último impuesto
