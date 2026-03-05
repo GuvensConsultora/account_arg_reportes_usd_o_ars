@@ -136,8 +136,12 @@
       </t>
     </xpath>
 
-    <!-- 3. Ocultar Impuestos AR original (dentro de div#total) para no duplicar -->
-    <xpath expr="//div[@id='total']//t[@t-call='account.document_tax_totals_company_currency_template']/.."
+    <!--
+      3. Ocultar Impuestos AR original (está dentro de div#right-elements, fuera de div#total).
+      Por qué: En account base, el t-call está como hijo directo de right-elements,
+      no dentro de div#total. Usamos el xpath al t-if padre que lo envuelve.
+    -->
+    <xpath expr="//div[@id='right-elements']/t[@t-if='o.tax_totals and o.tax_totals.get(&quot;display_in_company_currency&quot;)']"
            position="attributes">
       <attribute name="t-if">False</attribute>
     </xpath>
