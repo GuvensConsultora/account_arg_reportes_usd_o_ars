@@ -84,12 +84,13 @@
     </xpath>
 
     <!-- 2. Borde al bloque izquierdo (datos del cliente) -->
-    <xpath expr="//div[@id='informations']/div[@class='col-6'][1]" position="attributes">
+    <!-- Por qué: hasclass() es obligatorio en Odoo 19, @class en xpath genera warning -->
+    <xpath expr="//div[@id='informations']/div[hasclass('col-6')][1]" position="attributes">
       <attribute name="style">border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;</attribute>
     </xpath>
 
     <!-- 3. Borde al bloque derecho (datos de la factura) -->
-    <xpath expr="//div[@id='informations']/div[@class='col-6'][2]" position="attributes">
+    <xpath expr="//div[@id='informations']/div[hasclass('col-6')][2]" position="attributes">
       <attribute name="style">border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;</attribute>
     </xpath>
 
@@ -148,14 +149,11 @@
   </template>
 
   <!--
-    Cambios pedidos por Facu:
-    1. Agregar Vendedor en el encabezado derecho
-    2. Ocultar Plazos de Pago del bloque informations
-    3. Agregar zona "Forma de pago" / "Anticipo" / "Forma de pago convenida" a la izquierda de totales
+    Vendedor en encabezado derecho.
+    Por qué: div#l10n_ar_header_right está en l10n_ar.custom_header, NO en report_invoice_document.
+    Hay que heredar del template correcto.
   -->
-  <template id="l10n_ar_facu_changes" inherit_id="l10n_ar.report_invoice_document">
-
-    <!-- 1. Vendedor en encabezado derecho -->
+  <template id="l10n_ar_header_vendedor" inherit_id="l10n_ar.custom_header">
     <xpath expr="//div[@id='l10n_ar_header_right']" position="inside">
       <t t-if="o.invoice_user_id">
         <br/>
@@ -163,13 +161,21 @@
         <span t-field="o.invoice_user_id.name"/>
       </t>
     </xpath>
+  </template>
 
-    <!-- 2. Ocultar "Payment Terms" del encabezado -->
+  <!--
+    Cambios pedidos por Facu al contenido de factura:
+    1. Ocultar Plazos de Pago del bloque informations
+    2. Agregar zona "Forma de pago" / "Anticipo" / "Forma de pago convenida" a la izquierda de totales
+  -->
+  <template id="l10n_ar_facu_changes" inherit_id="l10n_ar.report_invoice_document">
+
+    <!-- 1. Ocultar "Payment Terms" del encabezado -->
     <xpath expr="//div[@id='informations']//t[@name='payment_term']" position="attributes">
       <attribute name="t-if">False</attribute>
     </xpath>
 
-    <!-- 3. Zona "Forma de pago" a la izquierda de los totales -->
+    <!-- 2. Zona "Forma de pago" a la izquierda de los totales -->
     <xpath expr="//div[@id='right-elements']" position="before">
       <div class="d-inline-block float-start" style="width: 50%; font-size: 10px;">
         <!-- Forma de pago: muestra el plazo de pago asignado -->
