@@ -5,9 +5,16 @@
     <field name="inherit_id" ref="account.view_move_form"/>
     <field name="arch" type="xml">
       <xpath expr="//group[@id='header_right_group']" position="inside">
-	<field name="x_factura_dolares"/>
+        <field name="x_factura_dolares"/>
         <field name="x_tipo_cambio"/>
       </xpath>
+      <!-- Campos de Facu: anticipo y forma de pago convenida, solo en facturas de cliente -->
+      <field name="invoice_payment_term_id" position="after">
+        <field name="x_anticipo"
+               invisible="move_type not in ('out_invoice', 'out_refund')"/>
+        <field name="x_forma_pago_convenida"
+               invisible="move_type not in ('out_invoice', 'out_refund')"/>
+      </field>
     </field>
   </record>
 </odoo>

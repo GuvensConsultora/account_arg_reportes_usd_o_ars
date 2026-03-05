@@ -7,6 +7,18 @@ class AccountMove(models.Model):
     x_factura_dolares = fields.Boolean(string="Factura en USD")
     x_tipo_cambio = fields.Float(string="Tipo de cambio", digits=(12, 4))
 
+    # Por qué: Facu pide estos campos visibles en el PDF de factura.
+    # Anticipo = monto adelantado, Forma de pago convenida = texto libre del acuerdo.
+    x_anticipo = fields.Monetary(
+        'Anticipo',
+        currency_field='currency_id',
+        help='Monto de anticipo requerido para esta operación',
+    )
+    x_forma_pago_convenida = fields.Char(
+        'Forma de pago convenida',
+        help='Descripción de la forma de pago acordada con el cliente',
+    )
+
     # Por qué: campo Json compute para precalcular importes USD y evitar
     # errores de redondeo al dividir cada línea por separado en QWeb.
     # Patrón: Single Source of Truth — el total se convierte UNA vez

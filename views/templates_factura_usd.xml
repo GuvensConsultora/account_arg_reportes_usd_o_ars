@@ -70,4 +70,130 @@
       </t>
     </div>
   </template>
+
+  <!--
+    Mejoras visuales al documento de factura estándar l10n_ar.
+    Por qué: Mejora spacing, bordes y tipografía del contenido sin alterar estructura.
+  -->
+  <template id="l10n_ar_visual_improvements" inherit_id="l10n_ar.report_invoice_document">
+
+    <!-- 1. Spacing y tipografía del bloque informaciones -->
+    <xpath expr="//div[@id='informations']" position="attributes">
+      <attribute name="class">row mt-3 mb-3</attribute>
+      <attribute name="style">font-size: 11px;</attribute>
+    </xpath>
+
+    <!-- 2. Borde al bloque izquierdo (datos del cliente) -->
+    <xpath expr="//div[@id='informations']/div[@class='col-6'][1]" position="attributes">
+      <attribute name="style">border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;</attribute>
+    </xpath>
+
+    <!-- 3. Borde al bloque derecho (datos de la factura) -->
+    <xpath expr="//div[@id='informations']/div[@class='col-6'][2]" position="attributes">
+      <attribute name="style">border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;</attribute>
+    </xpath>
+
+    <!-- 4. Fondo gris claro en header de tabla de líneas -->
+    <xpath expr="//table[@name='invoice_line_table']/thead/tr" position="attributes">
+      <attribute name="style">background-color: #f8f9fa;</attribute>
+    </xpath>
+
+    <!-- 5. Separador visual antes de totales -->
+    <xpath expr="//div[@id='total']" position="attributes">
+      <attribute name="style">border-top: 2px solid #000; padding-top: 10px;</attribute>
+    </xpath>
+
+  </template>
+
+  <!--
+    Mover "Impuestos AR" a la izquierda del cuadro de totales.
+    Por qué: Ambos cuadros quedan a la misma altura en la misma fila.
+    Patrón: Convertir right-elements en flex container con ambos cuadros lado a lado.
+  -->
+  <template id="l10n_ar_impuestos_ar_left" inherit_id="l10n_ar.report_invoice_document">
+
+    <!-- 1. Ampliar right-elements a ancho completo con flexbox -->
+    <xpath expr="//div[@id='right-elements']" position="attributes">
+      <attribute name="class">col-12 float-end d-flex justify-content-end align-items-start gap-4</attribute>
+    </xpath>
+
+    <!-- 2. Insertar cuadro Impuestos AR ANTES de div#total (queda a la izquierda) -->
+    <xpath expr="//div[@id='total']" position="before">
+      <t t-if="o.tax_totals and o.tax_totals.get('display_in_company_currency')">
+        <t t-set="tax_totals" t-value="o.tax_totals"/>
+        <!-- Safety net: asegurar keys Enterprise en dict Community -->
+        <t t-foreach="tax_totals.get('subtotals', [])" t-as="_sub">
+          <t t-set="_" t-value="_sub.setdefault('amount_company_currency', _sub.get('base_amount', 0))"/>
+          <t t-foreach="_sub.get('tax_groups', [])" t-as="_tg">
+            <t t-set="_" t-value="_tg.setdefault('tax_amount_company_currency', _tg.get('tax_amount', 0))"/>
+            <t t-set="_" t-value="_tg.setdefault('display_base_amount_company_currency', _tg.get('display_base_amount', False))"/>
+          </t>
+        </t>
+        <t t-set="_" t-value="tax_totals.setdefault('total_amount_company_currency', tax_totals.get('total_amount', 0))"/>
+        <div class="flex-shrink-0" style="min-width: 45%;">
+          <t t-call="account.document_tax_totals_company_currency_template"/>
+        </div>
+      </t>
+    </xpath>
+
+    <!-- 3. Ocultar Impuestos AR original (dentro de div#total) para no duplicar -->
+    <xpath expr="//div[@id='total']//t[@t-call='account.document_tax_totals_company_currency_template']/.."
+           position="attributes">
+      <attribute name="t-if">False</attribute>
+    </xpath>
+
+  </template>
+
+  <!--
+    Cambios pedidos por Facu:
+    1. Agregar Vendedor en el encabezado derecho
+    2. Ocultar Plazos de Pago del bloque informations
+    3. Agregar zona "Forma de pago" / "Anticipo" / "Forma de pago convenida" a la izquierda de totales
+  -->
+  <template id="l10n_ar_facu_changes" inherit_id="l10n_ar.report_invoice_document">
+
+    <!-- 1. Vendedor en encabezado derecho -->
+    <xpath expr="//div[@id='l10n_ar_header_right']" position="inside">
+      <t t-if="o.invoice_user_id">
+        <br/>
+        <span t-att-style="'color: %s;' % o.company_id.secondary_color">Vendedor: </span>
+        <span t-field="o.invoice_user_id.name"/>
+      </t>
+    </xpath>
+
+    <!-- 2. Ocultar "Payment Terms" del encabezado -->
+    <xpath expr="//div[@id='informations']//t[@name='payment_term']" position="attributes">
+      <attribute name="t-if">False</attribute>
+    </xpath>
+
+    <!-- 3. Zona "Forma de pago" a la izquierda de los totales -->
+    <xpath expr="//div[@id='right-elements']" position="before">
+      <div class="d-inline-block float-start" style="width: 50%; font-size: 10px;">
+        <!-- Forma de pago: muestra el plazo de pago asignado -->
+        <t t-if="o.invoice_payment_term_id">
+          <div style="margin-bottom: 4px;">
+            <strong>Forma de pago: </strong>
+            <span t-field="o.invoice_payment_term_id.name"/>
+          </div>
+        </t>
+        <!-- Anticipo: monto adelantado si está cargado -->
+        <t t-if="o.x_anticipo">
+          <div style="margin-bottom: 4px;">
+            <strong>Anticipo: </strong>
+            <span t-field="o.x_anticipo"
+                  t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+          </div>
+        </t>
+        <!-- Forma de pago convenida: texto libre del acuerdo -->
+        <t t-if="o.x_forma_pago_convenida">
+          <div style="margin-bottom: 4px;">
+            <strong>Forma de pago convenida: </strong>
+            <span t-field="o.x_forma_pago_convenida"/>
+          </div>
+        </t>
+      </div>
+    </xpath>
+
+  </template>
+
 </odoo>
