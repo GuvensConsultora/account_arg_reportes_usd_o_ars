@@ -73,33 +73,82 @@
 
   <!--
     Mejoras visuales al documento de factura estándar l10n_ar.
-    Por qué: Mejora spacing, bordes y tipografía del contenido sin alterar estructura.
+    Por qué: Reemplaza la sección #informations completa para mejorar legibilidad.
+    Patrón: position="replace" sobre div#informations, recrea ambas columnas con
+    mejor line-height, spacing entre campos, y etiquetas destacadas.
   -->
   <template id="l10n_ar_visual_improvements" inherit_id="l10n_ar.report_invoice_document">
 
-    <!-- 1. Spacing y tipografía del bloque informaciones -->
-    <xpath expr="//div[@id='informations']" position="attributes">
-      <attribute name="class">row mt-3 mb-3</attribute>
-      <attribute name="style">font-size: 11px;</attribute>
+    <!-- Reemplazar bloque informations completo para mejor legibilidad -->
+    <xpath expr="//div[@id='informations']" position="replace">
+      <div id="informations" class="row mt-3 mb-3" style="font-size: 11px;">
+
+        <!-- Columna izquierda: datos del cliente -->
+        <div class="col-6" style="border: 1px solid #dee2e6; border-radius: 4px; padding: 12px; line-height: 1.8;">
+
+          <t t-if="o.is_sale_document(include_receipts=True)"><strong>Cliente: </strong></t>
+          <t t-else=""><strong>Proveedor: </strong></t>
+          <span t-field="o.partner_id.commercial_partner_id.name" style="font-size: 12px;"/>
+          <br/>
+
+          <span t-field="o.partner_id" t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': true, 'no_tag_br': True}"/>
+          <br/>
+
+          <strong>Cond. IVA: </strong>
+          <span t-field="o.partner_id.l10n_ar_afip_responsibility_type_id"/>
+
+          <t t-if="o.partner_id.vat and o.partner_id.l10n_latam_identification_type_id and o.partner_id.l10n_latam_identification_type_id.l10n_ar_afip_code != '99'">
+            <br/>
+            <strong><t t-out="o.partner_id.l10n_latam_identification_type_id.name or o.company_id.account_fiscal_country_id.vat_label"/>: </strong>
+            <span t-out="o.partner_id.l10n_ar_formatted_vat if o.partner_id.l10n_ar_vat else o.partner_id.vat"/>
+          </t>
+        </div>
+
+        <!-- Columna derecha: datos de la factura -->
+        <div class="col-6" style="border: 1px solid #dee2e6; border-radius: 4px; padding: 12px; line-height: 1.8;">
+
+          <t t-if="o.invoice_date_due">
+            <strong>Fecha Vencimiento: </strong>
+            <span t-field="o.invoice_date_due"/>
+            <br/>
+          </t>
+
+          <t t-if="o.invoice_payment_term_id" name="payment_term">
+            <strong>Plazos de Pago: </strong>
+            <span t-field="o.invoice_payment_term_id.name"/>
+            <br/>
+          </t>
+
+          <t t-if="o.invoice_origin">
+            <strong>Origen: </strong>
+            <span t-field="o.invoice_origin"/>
+            <br/>
+          </t>
+
+          <t t-if="o.ref">
+            <strong>Referencia: </strong>
+            <span t-field="o.ref"/>
+            <br/>
+          </t>
+
+          <t t-if="o.invoice_incoterm_id">
+            <strong>Incoterm: </strong>
+            <span t-field="o.invoice_incoterm_id.code"/>
+            <t t-if="o.incoterm_location">
+              - <span t-field="o.incoterm_location"/>
+            </t>
+          </t>
+        </div>
+
+      </div>
     </xpath>
 
-    <!-- 2. Borde al bloque izquierdo (datos del cliente) -->
-    <!-- Por qué: hasclass() es obligatorio en Odoo 19, @class en xpath genera warning -->
-    <xpath expr="//div[@id='informations']/div[hasclass('col-6')][1]" position="attributes">
-      <attribute name="style">border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;</attribute>
-    </xpath>
-
-    <!-- 3. Borde al bloque derecho (datos de la factura) -->
-    <xpath expr="//div[@id='informations']/div[hasclass('col-6')][2]" position="attributes">
-      <attribute name="style">border: 1px solid #dee2e6; border-radius: 4px; padding: 10px;</attribute>
-    </xpath>
-
-    <!-- 4. Fondo gris claro en header de tabla de líneas -->
+    <!-- Fondo gris claro en header de tabla de líneas -->
     <xpath expr="//table[@name='invoice_line_table']/thead/tr" position="attributes">
       <attribute name="style">background-color: #f8f9fa;</attribute>
     </xpath>
 
-    <!-- 5. Separador visual antes de totales -->
+    <!-- Separador visual antes de totales -->
     <xpath expr="//div[@id='total']" position="attributes">
       <attribute name="style">border-top: 2px solid #000; padding-top: 10px;</attribute>
     </xpath>
